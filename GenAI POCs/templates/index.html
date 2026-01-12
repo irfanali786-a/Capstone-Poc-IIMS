@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incident Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }        .incident-details {
+            color: #444444;
+            line-height: 1.5;
+            background: rgba(231, 240, 247, 0.5);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid #79B9E7;
+        }
+        
+        body {
+            font-family: 'Everyday Sans', Calibri, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(90deg, #e3ffe7 0%, #d9e7ff 100%);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 80%, rgba(255, 194, 32, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(121, 185, 231, 0.15) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(242, 248, 253, 0.98) 100%);
+            border-radius: 20px;
+            box-shadow: 0 30px 60px rgba(4, 30, 66, 0.3), 
+                        0 0 40px rgba(0, 113, 206, 0.1),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(121, 185, 231, 0.2);
+        }
+
+        .header {
+            background: url('/static/herosection.png') no-repeat center center;
+            background-size: cover;
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            border-bottom: 1px solid #222;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0);
+            pointer-events: none;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+            font-weight: 700;
+            color: white;
+            position: relative;
+            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+            color: white;
+            position: relative;
+            z-index: 1;
+            font-weight: 400;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+
+        textarea {
+            width: 60%;
+            padding: 16px 20px;
+            border: 1px solid #dfe1e5;
+            border-radius: 24px;
+            font-size: 16px;
+            font-family: 'Everyday Sans', Calibri, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            resize: vertical;
+            min-height: 44px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px 1px rgba(64,60,67,.16);
+            outline: none;
+            text-align: center;
+            margin: 0 auto;
+            display: block;
+        }
+
+        textarea:hover {
+            box-shadow: 0 2px 8px 1px rgba(64,60,67,.24);
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #4285f4;
+            box-shadow: 0 2px 8px 1px rgba(64,60,67,.24);
+        }
+
+        .analyze-btn {
+            background: #0053e2;
+            color: #FFFFFF;
+            border: none;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: auto;
+            display: inline-block;
+            box-shadow: 0 2px 8px rgba(66, 133, 244, 0.3);
+            text-transform: none;
+            letter-spacing: 0.5px;
+            font-family: 'Everyday Sans', Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .analyze-btn:hover:not(:disabled) {
+            background: #3367d6;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.4);
+        }
+
+        .analyze-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(66, 133, 244, 0.3);
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        .progress-steps {
+            max-width: 600px;
+            margin: 20px auto 0;
+            text-align: left;
+        }
+
+        .progress-step {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(231, 240, 247, 0.8) 100%);
+            border: 1px solid rgba(121, 185, 231, 0.3);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: slideInFade 0.5s ease forwards;
+            font-size: 0.9em;
+            color: #2c3e50;
+            box-shadow: 0 2px 8px rgba(4, 30, 66, 0.1);
+        }
+
+        .progress-step.completed {
+            background: linear-gradient(145deg, rgba(231, 240, 247, 0.9) 0%, rgba(209, 231, 221, 0.8) 100%);
+            border-color: rgba(46, 204, 113, 0.4);
+            color: #27ae60;
+        }
+
+        .progress-step .step-icon {
+            display: inline-block;
+            width: 20px;
+            margin-right: 8px;
+            font-weight: bold;
+        }
+
+        @keyframes slideInFade {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .right-panel {
+            background: linear-gradient(145deg, rgba(231, 240, 247, 0.8) 0%, rgba(242, 248, 253, 0.9) 100%);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: inset 0 2px 10px rgba(0, 113, 206, 0.1),
+                        0 5px 20px rgba(4, 30, 66, 0.1);
+            border: 1px solid rgba(121, 185, 231, 0.3);
+        }
+
+        .right-panel h3 {
+            color: #041E42;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            font-weight: 700;
+            background: linear-gradient(45deg, #041E42, #0071CE);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(121, 185, 231, 0.3);
+        }
+
+        .top-sections {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 25px;
+        }
+
+        .section {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(231, 240, 247, 0.7) 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(4, 30, 66, 0.1), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(121, 185, 231, 0.2);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border-left: 5px solid #0071CE;
+        }
+
+        .top-sections .section {
+            height: 350px;
+            overflow: hidden;
+        }
+
+        .section h3 {
+            color: #041E42;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            font-weight: 700;
+            background: linear-gradient(45deg, #041E42, #0071CE);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .keywords {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 30px;
+           
+        }
+
+        .keyword {
+            background: linear-gradient(90deg, #eae8e8 0%, #FFFFFF 100%);
+            color: rgb(0, 0, 0);
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            font-weight: 500;
+            box-shadow: 0 4px 15px rgba(0, 97, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .keyword:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 97, 255, 0.4);
+        }
+
+        .incident-ticker {
+            height: calc(100% - 80px);
+            overflow: hidden;
+            position: relative;
+            border-radius: 8px;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(231, 240, 247, 0.8) 100%);
+            border: 1px solid rgba(121, 185, 231, 0.3);
+            padding: 10px;
+            margin-top: 15px;
+        }
+
+        .ticker-content {
+            animation: scroll 30s linear infinite;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ticker-item {
+            background: linear-gradient(90deg, rgba(4, 30, 66, 0.1) 0%, rgba(121, 185, 231, 0.1) 100%);
+            padding: 8px 12px;
+            border-radius: 6px;
+            border-left: 3px solid #0071CE;
+            font-size: 0.85em;
+            font-weight: 500;
+            color: #041E42;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        @keyframes scroll {
+            0% {
+                transform: translateY(0);
+            }
+            100% {
+                transform: translateY(-100%);
+            }
+        }
+
+        .incident-card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(242, 248, 253, 0.9) 100%);
+            border: 1px solid rgba(121, 185, 231, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(4, 30, 66, 0.1);
+        }
+
+        .incident-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(4, 30, 66, 0.15);
+            border-color: rgba(0, 113, 206, 0.5);
+        }
+
+        .incident-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .incident-number {
+            font-weight: bold;
+            color: #041E42;
+        }
+
+        .score-badge {
+            background: #00bf63;
+            color: #FFFFFF;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0, 97, 255, 0.3);
+        }
+
+        .matched-keywords {
+            color: #001e60;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .incident-details {
+            color: #666;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .analysis-content {
+            line-height: 1.6;
+            color: #333;
+            font-family: 'Everyday Sans', Calibri, sans-serif;
+        }
+
+        .analysis-content h1, .analysis-content h2, .analysis-content h3 {
+            color: #2c3e50;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-family: 'Everyday Sans', Calibri, sans-serif;
+        }
+
+        .analysis-content h1 {
+            font-size: 1.4em;
+        }
+
+        .analysis-content h2 {
+            font-size: 1.2em;
+        }
+
+        .analysis-content ul, .analysis-content ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .analysis-content li {
+            margin-bottom: 5px;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 5px solid #dc3545;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(231, 240, 247, 0.8) 100%);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid rgba(121, 185, 231, 0.3);
+            box-shadow: 0 6px 20px rgba(4, 30, 66, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(4, 30, 66, 0.15);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            background: #f04242;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: #444444;
+            font-size: 0.9em;
+            margin-top: 8px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 20px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2.5em;
+            }
+            
+            .results {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .top-sections {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .right-panel {
+                max-height: 400px;
+                order: 2;
+            }
+            
+            .left-panel {
+                order: 1;
+            }
+            
+            .incident-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+          
+        </div>
+        
+        <div class="main-content">
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="incident-query"></label>
+                    <textarea 
+                        id="incident-query" 
+                        placeholder="Incident Details"
+                    ></textarea>
+                </div>
+                <button class="analyze-btn" onclick="analyzeIncident()">
+                    🚀 Analyze Incident
+                </button>
+            </div>
+            
+            <div id="loading" class="loading" style="display: none;">
+                <div class="loading-spinner"></div>
+                <p>Analyzing incident data with AI...</p>
+                <div id="progress-steps" class="progress-steps">
+                    <!-- Progress steps will be added dynamically -->
+                </div>
+            </div>
+            
+            <div id="results" class="results" style="display: none;">
+                <!-- Results will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function analyzeIncident() {
+            const query = document.getElementById('incident-query').value.trim();
+            const loadingDiv = document.getElementById('loading');
+            const resultsDiv = document.getElementById('results');
+            const analyzeBtn = document.querySelector('.analyze-btn');
+            
+            if (!query) {
+                alert('Please enter an incident description');
+                return;
+            }
+            
+            // Show loading state
+            loadingDiv.style.display = 'block';
+            resultsDiv.style.display = 'none';
+            analyzeBtn.disabled = true;
+            analyzeBtn.textContent = '⏳ Analyzing...';
+            
+            // Start progress animation
+            showProgressSteps();
+            
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: query })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    showResults(data);
+                }
+                
+            } catch (error) {
+                showError('Network error occurred. Please try again.');
+                console.error('Error:', error);
+            } finally {
+                clearProgressSteps();
+                loadingDiv.style.display = 'none';
+                analyzeBtn.disabled = false;
+                analyzeBtn.textContent = '🚀 Analyze Incident';
+            }
+        }
+
+        function showProgressSteps() {
+            const progressContainer = document.getElementById('progress-steps');
+            progressContainer.innerHTML = '';
+            
+            const steps = [
+                { icon: '🔍', text: 'Parsing incident description and identifying key components...', delay: 500 },
+                { icon: '🧠', text: 'Extracting technical keywords using AI natural language processing...', delay: 1200 },
+                { icon: '📊', text: 'Searching through 1,365 historical incidents in database...', delay: 2000 },
+                { icon: '⚡', text: 'Calculating similarity scores and ranking matches...', delay: 2800 },
+                { icon: '🔗', text: 'Cross-referencing patterns and identifying common issues...', delay: 3500 },
+                { icon: '📝', text: 'Generating comprehensive analysis and recommendations...', delay: 4200 },
+                { icon: '✨', text: 'Finalizing insights and preparing detailed report...', delay: 5000 }
+            ];
+            
+            steps.forEach((step, index) => {
+                setTimeout(() => {
+                    const stepElement = document.createElement('div');
+                    stepElement.className = 'progress-step';
+                    stepElement.innerHTML = `
+                        <span class="step-icon">${step.icon}</span>
+                        ${step.text}
+                    `;
+                    progressContainer.appendChild(stepElement);
+                    
+                    // Mark previous steps as completed
+                    setTimeout(() => {
+                        stepElement.classList.add('completed');
+                    }, 600);
+                    
+                }, step.delay);
+            });
+        }
+
+        function clearProgressSteps() {
+            const progressContainer = document.getElementById('progress-steps');
+            progressContainer.innerHTML = '';
+        }
+        
+        function showError(message) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+                <div class="error">
+                    <strong>Error:</strong> ${message}
+                </div>
+            `;
+            resultsDiv.style.display = 'block';
+        }
+        
+        function showResults(data) {
+            const resultsDiv = document.getElementById('results');
+            
+            // Create keywords HTML
+            const keywordsHtml = data.keywords.map(keyword => 
+                `<span class="keyword">${keyword}</span>`
+            ).join('');
+            
+            // Create incident ticker HTML - show all high score incidents (≥80%)
+            const highScoreIncidents = data.incidents.filter(incident => {
+                // Score format is "X/Y" (e.g., "3/5")
+                const [numerator, denominator] = incident.score.split('/').map(x => parseInt(x));
+                const scorePercentage = (numerator / denominator) * 100;
+                return scorePercentage >= 80;
+            });
+            
+            const tickerHtml = highScoreIncidents.map((incident, index) => 
+                `<div class="ticker-item">INC${incident.number} - Score: ${incident.score}</div>`
+            ).join('');
+            
+            // Duplicate ticker items for seamless loop
+            const duplicatedTickerHtml = tickerHtml + tickerHtml;
+            
+            // Create incidents HTML
+            const incidentsHtml = data.incidents.map(incident => `
+                <div class="incident-card">
+                    <div class="incident-header">
+                        <span class="incident-number">Incident #${incident.number}</span>
+                        <span class="score-badge">Score: ${incident.score}</span>
+                    </div>
+                    <div class="matched-keywords">
+                        <strong>Matched Keywords:</strong> ${incident.matched_keywords}
+                    </div>
+                    <div class="incident-details">
+                        ${incident.details}
+                    </div>
+                </div>
+            `).join('');
+            
+            // Format analysis content - it's already HTML from backend
+            const analysisHtml = data.analysis;
+            
+            resultsDiv.innerHTML = `
+                <div class="left-panel">
+                    <div class="top-sections">
+                        <div class="section">
+                            <h3>🔎 Analysis Summary</h3>
+                            <div class="stats">
+                                <div class="stat-card">
+                                    <div class="stat-number">${data.keywords.length}</div>
+                                    <div class="stat-label">Keywords Extracted</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-number">${data.high_score_matches}</div>
+                                    <div class="stat-label">High Score Incidents (≥80%)</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>🔑 Extracted Keywords</h3>
+                            <div class="keywords">
+                                ${keywordsHtml}
+                            </div>
+                        </div>
+                        
+                        <div class="section">
+                            <h3>🔝 Top Incidents</h3>
+                            <div class="incident-ticker">
+                                <div class="ticker-content">
+                                    ${duplicatedTickerHtml}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="section">
+                        <h3>🧠 AI Analysis & Insights</h3>
+                        <div class="analysis-content">
+                            ${analysisHtml}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="right-panel">
+                    <h3>📋 Top Matching Incidents</h3>
+                    ${incidentsHtml}
+                </div>
+            `;
+            
+            resultsDiv.style.display = 'block';
+        }
+        
+        // Allow Enter key to submit (with Ctrl/Cmd)
+        document.getElementById('incident-query').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                analyzeIncident();
+            }
+        });
+    </script>
+</body>
+</html>

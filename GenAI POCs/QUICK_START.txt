@@ -1,0 +1,43 @@
+🚀 QUICK START GUIDE
+==================
+
+This is your complete Incident Analyzer App! Here's everything you need:
+
+📁 WHAT'S INCLUDED:
+- incident_analyzer_app.py (Main Flask application)
+- templates/index.html (Beautiful dashboard UI)
+- static/herosection.png (Header background image)
+- requirements.txt (Python dependencies)
+- setup.sh (Automated setup script)
+- README.md (Comprehensive documentation)
+- data/ (Folder for your CSV file)
+
+⚡ FASTEST SETUP (3 steps):
+
+1. GET API KEY:
+   • Go to: https://aistudio.google.com/app/apikey
+   • Create a Google AI API key
+   • Copy the key
+
+2. CONFIGURE:
+   • Open: incident_analyzer_app.py
+   • Replace "YOUR_API_KEY_HERE" with your actual API key
+   • Update the CSV file path to your incident data
+
+3. RUN:
+   • Run: ./setup.sh (or bash setup.sh)
+   • Run: python3 incident_analyzer_app.py
+   • Open: http://localhost:5000
+
+🎯 FEATURES YOU'LL GET:
+✅ AI-powered incident analysis
+✅ Beautiful Walmart-themed dashboard
+✅ Real-time auto-scrolling ticker
+✅ Google-style search interface
+✅ Executive summary reports
+✅ Pattern recognition
+✅ 80% confidence scoring
+
+📞 Need help? Check README.md for detailed instructions!
+
+Happy analyzing! 🎉

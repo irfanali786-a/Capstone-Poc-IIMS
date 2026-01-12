@@ -1,0 +1,58 @@
+#profiles:
+#  - python-web
+#  #- goldensignal-strati
+#
+#owner:
+#  group: cill-wcnp-deployments-stage
+#
+#notify:
+#  slack:
+#    channelName: cill-helloworld-suit-test
+#
+#setup:
+#  releaseRefs: [ "feature/github-tracking" ]
+#  featureFlagMap:
+#    useArtifactory: false
+#
+#build:
+#  artifact: bq-rs-handler
+#  looper:
+#    enableDockerNoCache: true
+#    enableDockerClean: true
+#  docker:
+#    app:
+#      buildArgs:
+#        skipCodeCoverage: true
+#      #dockerFile: Dockerfile
+#
+#deploy:
+#  skip: false
+#  namespace: cill-rs-creator-stage-ns
+#  useTempNamespace: false
+#  releaseType:
+#    strategy: normal
+#    rollbackOnError: false
+#    waitForReady: false
+#    deployTimeout: 180
+#  helm:
+#    values:
+#      min:
+#        cpu: 500m
+#        memory: 1024Mi
+#      max:
+#        cpu: 1024m
+#        memory: 2048Mi
+#      scaling:
+#        min: 1
+#        max: 1
+#      livenessProbe:
+#        enabled: false
+#      readinessProbe:
+#        enabled: false
+#
+#  stages:
+#    - name: stage
+#      refs: [ "feature/github-tracking" ]
+#      target:
+#        - cluster_id: [ useast4-stage-gke01 ]
+#
